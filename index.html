@@ -1,0 +1,497 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qulpyr Flowers</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#fffaf7;color:#392d35;font-family:Arial,sans-serif}
+header{padding:20px 6%;display:flex;justify-content:space-between;align-items:center;background:white;border-bottom:1px solid #f0dfe4}
+.logo{font-size:26px;font-weight:900;color:#b65d7d}
+.logo span{color:#dba3b4}
+button{cursor:pointer;font:inherit}
+.lang button,.mood button{border:1px solid #eedde3;background:white;border-radius:22px;padding:10px 14px}
+.hero{text-align:center;padding:65px 20px;background:linear-gradient(135deg,#ffe9ef,#fff5e9)}
+.eyebrow{font-size:11px;letter-spacing:3px;color:#b65d7d;font-weight:bold}
+h1{font-size:clamp(35px,6vw,56px);margin:16px 0}
+.hero p{color:#897780;line-height:1.6}
+.wrap{max-width:1100px;margin:35px auto;padding:0 20px}
+.panel{background:white;border:1px solid #f0dfe4;border-radius:20px;padding:25px;margin-bottom:25px;box-shadow:0 8px 30px #63354b0a}
+h2{margin-top:0}
+.mood{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0}
+.mood button.active{background:#b65d7d;color:white;border-color:#b65d7d}
+textarea,input,select{width:100%;padding:13px;border:1px solid #eedde3;border-radius:11px;background:#fffdfd;font:inherit;color:#392d35}
+textarea{min-height:85px;resize:vertical}
+.primary{background:#b65d7d;color:white;border:0;border-radius:12px;padding:15px 20px;font-weight:bold;width:100%;margin-top:14px}
+.primary:hover{background:#984765}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+.product{border:1px solid #f0dfe4;border-radius:17px;overflow:hidden;background:white}
+.product img{width:100%;height:190px;object-fit:cover;display:block;background:#fff0f3}
+.product-body{padding:17px}
+.product-body h3{margin:0 0 9px}
+.muted{color:#897780;font-size:14px;line-height:1.5}
+.price{font-weight:800;color:#b65d7d;font-size:21px;margin:12px 0}
+.stock{font-size:12px;font-weight:bold;border-radius:20px;padding:6px 10px;display:inline-block}
+.in{background:#e6f6eb;color:#287546}
+.low{background:#fff3d9;color:#936315}
+.out{background:#ffe6e8;color:#a53c4d}
+.results{display:none;margin-bottom:28px}
+.result-heading{text-align:center;padding:15px}
+.result-heading h2{font-size:29px}
+.reason{background:#fff3f5;padding:12px;border-radius:10px;font-size:13px;color:#805064;line-height:1.5;margin-top:12px}
+.location{background:#fff5f6;border-radius:15px;padding:20px;line-height:1.8}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{margin:12px 0}
+.field label{display:block;font-size:13px;font-weight:bold;margin-bottom:7px}
+.status{display:none;margin-top:15px;padding:15px;background:#fff1f4;border-radius:12px;line-height:1.6}
+.small{font-size:12px;color:#988991;line-height:1.5}
+a{color:#984765}
+footer{text-align:center;padding:35px;color:#a18e95}
+@media(max-width:650px){header{padding:15px;flex-wrap:wrap;gap:12px}.two{grid-template-columns:1fr}.panel{padding:18px}}
+</style>
+</head>
+
+<body>
+<header>
+ <div class="logo">Qulpyr <span>Flowers ✿</span></div>
+ <div class="lang">
+  <button onclick="setLang('EN')">EN</button>
+  <button onclick="setLang('RU')">RU</button>
+  <button onclick="setLang('KZ')">KZ</button>
+ </div>
+</header>
+
+<section class="hero">
+ <div class="eyebrow" id="eyebrow">FLOWERS FOR EVERY FEELING</div>
+ <h1 id="headline">Every mood deserves flowers.</h1>
+ <p id="subtitle">Tell us how you feel. We'll find a bouquet that matches your emotions.</p>
+</section>
+
+<main class="wrap">
+
+<section class="panel">
+ <div class="eyebrow">01 / MOOD AI</div>
+ <h2 id="moodTitle">How are you feeling today?</h2>
+ <p class="muted" id="moodInstruction">Choose your mood:</p>
+
+ <div class="mood" id="moods">
+  <button onclick="chooseMood('sad',this)">😢 Sad</button>
+  <button onclick="chooseMood('happy',this)">😊 Happy</button>
+  <button onclick="chooseMood('romantic',this)">❤️ Romantic</button>
+  <button onclick="chooseMood('thoughtful',this)">🧠 Thoughtful</button>
+  <button onclick="chooseMood('calm',this)">😌 Calm</button>
+  <button onclick="chooseMood('energetic',this)">⚡ Energetic</button>
+ </div>
+
+ <p id="describeLabel" class="muted">Or describe your feelings:</p>
+ <textarea id="feeling" placeholder="I feel happy today..."></textarea>
+ <button class="primary" id="recommendButton" onclick="recommend()">✿ Find my bouquet</button>
+ <p class="small" id="aiNote">Mood-based recommendations powered by built-in AI-style matching rules.</p>
+</section>
+
+<!-- SEPARATE RECOMMENDATIONS -->
+<section class="results" id="results">
+ <div class="result-heading">
+  <div class="eyebrow" id="matchLabel">YOUR PERSONAL RECOMMENDATIONS</div>
+  <h2 id="resultTitle">Flowers for your mood</h2>
+  <p class="muted" id="resultDescription"></p>
+ </div>
+ <div class="grid" id="recommendationCards"></div>
+</section>
+
+<section class="panel">
+ <div class="eyebrow">02 / FLOWER COLLECTION</div>
+ <h2 id="catalogTitle">Our Bouquet Collection</h2>
+ <p class="muted" id="catalogDescription">Small bouquets, beautiful emotions.</p>
+ <div class="grid" id="catalog"></div>
+ <p class="small" id="stockNote">Inventory is demonstration data and is not connected to live stock.</p>
+</section>
+
+<section class="panel">
+ <div class="eyebrow">03 / PICKUP LOCATION</div>
+ <h2 id="locationTitle">Find our flower box</h2>
+ <div class="location">
+  <strong>🌷 Qulpyr Flowers — Flower Box</strong><br>
+  <strong>Restaurant «Огонёк»</strong><br>
+  <span id="address">Panfilova Street, 125, Almaty, Kazakhstan</span><br>
+  <span class="muted" id="pickupText">Pick up your bouquet at our flower box inside the restaurant.</span>
+  <p><a href="https://www.google.com/maps/search/?api=1&query=Огонек+Панфилова+125+Алматы" target="_blank" rel="noopener" id="mapLink">Open in Google Maps ↗</a></p>
+ </div>
+</section>
+
+<section class="panel">
+ <div class="eyebrow">04 / TABLE RESERVATION</div>
+ <h2 id="reserveTitle">Make your evening special</h2>
+ <p class="muted" id="reserveDescription">Planning a visit? Send a table reservation request to the restaurant.</p>
+
+ <div class="two">
+  <div class="field">
+   <label id="nameLabel" for="guestName">Your name</label>
+   <input id="guestName" placeholder="Name">
+  </div>
+  <div class="field">
+   <label id="phoneLabel" for="guestPhone">Phone number</label>
+   <input id="guestPhone" type="tel" placeholder="+7 ...">
+  </div>
+  <div class="field">
+   <label id="dateLabel" for="reserveDate">Date</label>
+   <input id="reserveDate" type="date">
+  </div>
+  <div class="field">
+   <label id="timeLabel" for="reserveTime">Time</label>
+   <input id="reserveTime" type="time" value="19:00">
+  </div>
+  <div class="field">
+   <label id="peopleLabel" for="people">Number of guests</label>
+   <select id="people">
+    <option value="1">1</option><option value="2" selected>2</option>
+    <option value="3">3</option><option value="4">4</option>
+    <option value="5">5</option><option value="6">6</option>
+    <option value="7">7</option><option value="8">8</option>
+    <option value="9">9</option><option value="10">10</option>
+   </select>
+  </div>
+ </div>
+
+ <button class="primary" id="reserveButton" onclick="sendReservation()">Send reservation request</button>
+ <div class="status" id="reserveStatus"></div>
+ <p class="small" id="reserveNote">This form prepares a request. The restaurant must confirm the actual reservation.</p>
+</section>
+</main>
+
+<footer id="footer">Qulpyr Flowers · Find flowers that match your feelings ✿</footer>
+
+<script>
+const bouquets=[
+{
+id:1,name:"Soft Blush",price:14500,stock:7,
+flowers:"Pink spray roses, gypsophila",
+image:"https://zakazcvetov.by/files/compressed/files_cat_4391_1596066827_big.jpg",
+moods:["sad","romantic","calm"],
+reason:"Soft pink shades create a gentle, comforting feeling."
+},
+{
+id:2,name:"Sunny Day",price:12000,stock:5,
+flowers:"Yellow gerberas and seasonal greenery",
+image:"https://million-buketov.ru/thumb/2/FsdFW6xt28-_ImH3sw0V-w/r/d/buket-iz-rozovyh-tyulpanov-i-germini.jpg",
+moods:["happy","energetic"],
+reason:"Bright flowers bring cheerful energy and optimism."
+},
+{
+id:3,name:"First Love",price:18000,stock:3,
+flowers:"Pink and red roses",
+image:"https://petalblossom.sg/cdn/shop/files/White_tulip_with_pink_gerbera.jpg?v=1775840783&width=800",
+moods:["romantic","happy"],
+reason:"A romantic mix that expresses warmth and affection."
+},
+{
+id:4,name:"Lavender Calm",price:16500,stock:4,
+flowers:"Lavender-toned seasonal flowers",
+image:"https://baseec-img-mng.akamaized.net/images/item/origin/be6a4929b80b56860f219213c7802e50.jpg?im=Resize%2Cwidth%3D1280%2Ctype%3Dnormal&imformat=generic&q=90",
+moods:["calm","thoughtful","sad"],
+reason:"Quiet colors for a peaceful and reflective mood."
+},
+{
+id:5,name:"Little Sunshine",price:10000,stock:0,
+flowers:"Mini yellow and white tulips",
+image:"https://floristeriabucaramanga.dondeseria.com/assets/foto15.webp",
+moods:["happy","energetic"],
+reason:"A small, cheerful bouquet full of color."
+},
+{
+id:6,name:"Pink Poetry",price:22000,stock:2,
+flowers:"Pink roses, tulips and greenery",
+image:"https://viregalandoamor.com/cdn/shop/files/Ramo_de_tulipanes_gerberas_y_rosas_lilas.jpg?v=1753723753&width=1946",
+moods:["thoughtful","romantic","calm"],
+reason:"A thoughtful combination of delicate flowers."
+}
+];
+
+const translations={
+EN:{
+headline:"Every mood deserves flowers.",
+subtitle:"Tell us how you feel. We'll find a bouquet that matches your emotions.",
+moodTitle:"How are you feeling today?",instruction:"Choose your mood:",
+describe:"Or describe your feelings:",placeholder:"I feel happy today...",
+recommend:"✿ Find my bouquet",aiNote:"Mood-based recommendations powered by built-in matching rules.",
+match:"YOUR PERSONAL RECOMMENDATIONS",result:"Flowers for your mood",
+catalog:"Our Bouquet Collection",catalogDesc:"Small bouquets, beautiful emotions.",
+stockNote:"Inventory is demonstration data and is not connected to live stock.",
+location:"Find our flower box",address:"Panfilova Street, 125, Almaty, Kazakhstan",
+pickup:"Pick up your bouquet at our flower box inside the restaurant.",
+map:"Open in Google Maps ↗",
+reserve:"Make your evening special",reserveDesc:"Send a table reservation request to the restaurant.",
+name:"Your name",phone:"Phone number",date:"Date",time:"Time",people:"Number of guests",
+reserveBtn:"Send reservation request",
+reserveNote:"This form prepares a request. The restaurant must confirm the actual reservation.",
+footer:"Qulpyr Flowers · Find flowers that match your feelings ✿",
+available:"In stock",low:"Low stock",out:"Out of stock",
+price:"Price",composition:"Composition",why:"Why it matches",
+noMood:"Please choose a mood or describe your feelings first.",
+missing:"Please complete all reservation fields.",
+request:"Reservation request prepared. Please send it to the restaurant for confirmation.",
+peopleWord:"people"
+},
+RU:{
+headline:"Каждому настроению — свои цветы.",
+subtitle:"Расскажи, что чувствуешь. Мы подберём букет под твоё настроение.",
+moodTitle:"Как ты себя сегодня чувствуешь?",instruction:"Выбери настроение:",
+describe:"Или опиши свои чувства:",placeholder:"Например: сегодня я счастлив...",
+recommend:"✿ Подобрать букет",aiNote:"Подбор букетов по настроению на основе встроенных правил.",
+match:"ПОДБОРКА СПЕЦИАЛЬНО ДЛЯ ТЕБЯ",result:"Цветы под твоё настроение",
+catalog:"Наша коллекция букетов",catalogDesc:"Небольшие букеты — большие эмоции.",
+stockNote:"Остатки демонстрационные и не связаны с реальным складом.",
+location:"Где находится наш бокс",address:"Улица Панфилова, 125, Алматы, Казахстан",
+pickup:"Забрать букет можно из нашего бокса внутри ресторана.",
+map:"Открыть в Google Maps ↗",
+reserve:"Сделай свой вечер особенным",reserveDesc:"Отправь заявку на бронирование столика в ресторан.",
+name:"Твоё имя",phone:"Номер телефона",date:"Дата",time:"Время",people:"Количество персон",
+reserveBtn:"Отправить заявку на бронь",
+reserveNote:"Это заявка, а не подтверждённая бронь. Ресторан должен подтвердить наличие столика.",
+footer:"Qulpyr Flowers · Цветы под твоё настроение ✿",
+available:"В наличии",low:"Мало осталось",out:"Нет в наличии",
+price:"Цена",composition:"Состав",why:"Почему подходит",
+noMood:"Сначала выбери настроение или опиши свои чувства.",
+missing:"Заполни все поля бронирования.",
+request:"Заявка подготовлена. Отправь её ресторану для подтверждения.",
+peopleWord:"персон"
+},
+KZ:{
+headline:"Әр көңіл-күйге өз гүлі.",
+subtitle:"Сезіміңді айт. Біз көңіл-күйіңе сай гүл шоғын таңдаймыз.",
+moodTitle:"Бүгін көңіл-күйің қалай?",instruction:"Көңіл-күйіңді таңда:",
+describe:"Немесе өз сезіміңді сипатта:",placeholder:"Мысалы: бүгін көңіл-күйім керемет...",
+recommend:"✿ Гүл шоғын таңдау",aiNote:"Көңіл-күйге негізделген ережелер арқылы гүл таңдау.",
+match:"САҒАН АРНАЛҒАН ҰСЫНЫСТАР",result:"Көңіл-күйіңе сай гүлдер",
+catalog:"Гүл шоқтарының топтамасы",catalogDesc:"Шағын гүл шоқтары — үлкен эмоциялар.",
+stockNote:"Қалдықтар демонстрациялық, нақты қоймамен байланыспаған.",
+location:"Гүл қорабымыздың мекенжайы",address:"Панфилов көшесі, 125, Алматы, Қазақстан",
+pickup:"Гүл шоғын мейрамхана ішіндегі қорабымыздан алуға болады.",
+map:"Google Maps картасында ашу ↗",
+reserve:"Кешіңді ерекше ет",reserveDesc:"Мейрамханаға үстел брондау өтінімін жібер.",
+name:"Атың",phone:"Телефон нөмірі",date:"Күні",time:"Уақыты",people:"Қонақтар саны",
+reserveBtn:"Брондау өтінімін жіберу",
+reserveNote:"Бұл өтінім ғана. Үстелді мейрамхана растауы керек.",
+footer:"Qulpyr Flowers · Көңіл-күйіңе сай гүлдер ✿",
+available:"Қолжетімді",low:"Аз қалды",out:"Қолда жоқ",
+price:"Бағасы",composition:"Құрамы",why:"Неліктен сәйкес келеді",
+noMood:"Алдымен көңіл-күйіңді таңда немесе сипатта.",
+missing:"Брондау формасының барлық өрістерін толтыр.",
+request:"Өтінім дайын. Растау үшін оны мейрамханаға жібер.",
+peopleWord:"адам"
+}
+};
+
+let lang="EN";
+let selectedMood="";
+const moodKeys=["sad","happy","romantic","thoughtful","calm","energetic"];
+const moodNames={
+EN:["😢 Sad","😊 Happy","❤️ Romantic","🧠 Thoughtful","😌 Calm","⚡ Energetic"],
+RU:["😢 Грустно","😊 Весело","❤️ Романтично","🧠 Задумчиво","😌 Спокойно","⚡ Энергично"],
+KZ:["😢 Мұңды","😊 Көңілді","❤️ Романтикалық","🧠 Ойлы","😌 Сабырлы","⚡ Қуатты"]
+};
+const $=id=>document.getElementById(id);
+
+function setLang(l){
+lang=l;
+const t=translations[l];
+const fields={
+headline:"headline",subtitle:"subtitle",moodTitle:"moodTitle",
+instruction:"instruction",describe:"describe",catalog:"catalog",
+catalogDesc:"catalogDesc",stockNote:"stockNote",location:"location",
+address:"address",pickup:"pickup",map:"map",reserve:"reserve",
+reserveDesc:"reserveDesc",name:"name",phone:"phone",date:"date",
+time:"time",people:"people",reserveBtn:"reserveBtn",
+reserveNote:"reserveNote",footer:"footer",aiNote:"aiNote"
+};
+const ids={
+headline:"headline",subtitle:"subtitle",moodTitle:"moodTitle",
+instruction:"moodInstruction",describe:"describeLabel",catalog:"catalogTitle",
+catalogDesc:"catalogDescription",stockNote:"stockNote",
+location:"locationTitle",address:"address",pickup:"pickupText",
+map:"mapLink",reserve:"reserveTitle",reserveDesc:"reserveDescription",
+name:"nameLabel",phone:"phoneLabel",date:"dateLabel",time:"timeLabel",
+people:"peopleLabel",reserveBtn:"reserveButton",reserveNote:"reserveNote",
+footer:"footer",aiNote:"aiNote"
+};
+Object.keys(ids).forEach(k=>$(ids[k]).textContent=t[fields[k]]);
+$("feeling").placeholder=t.placeholder;
+$("recommendButton").textContent=t.recommend;
+document.querySelectorAll(".mood button").forEach((b,i)=>{
+b.textContent=moodNames[l][i];
+b.classList.toggle("active",moodKeys[i]===selectedMood);
+});
+renderCatalog();
+if(selectedMood)renderRecommendations(selectedMood);
+}
+
+function stockInfo(b){
+const t=translations[lang];
+if(b.stock===0)return [t.out,"out"];
+if(b.stock<=3)return [t.low,"low"];
+return [t.available,"in"];
+}
+
+function makeCard(b,mood){
+const t=translations[lang];
+const [stock,cls]=stockInfo(b);
+const card=document.createElement("article");
+card.className="product";
+const img=document.createElement("img");
+img.src=b.image;
+img.alt=b.name;
+img.loading="lazy";
+img.onerror=function(){this.style.display="none";};
+const body=document.createElement("div");
+body.className="product-body";
+const title=document.createElement("h3");
+title.textContent=b.name;
+const composition=document.createElement("p");
+composition.className="muted";
+composition.textContent=t.composition+": "+b.flowers;
+const stockBadge=document.createElement("span");
+stockBadge.className="stock "+cls;
+stockBadge.textContent=stock+" · "+b.stock+" pcs";
+const price=document.createElement("div");
+price.className="price";
+price.textContent=b.price.toLocaleString("en-US")+" ₸";
+body.append(title,composition,stockBadge,price);
+if(mood){
+const reason=document.createElement("div");
+reason.className="reason";
+reason.textContent=t.why+": "+getReason(b,mood);
+body.appendChild(reason);
+}
+card.append(img,body);
+return card;
+}
+
+function renderCatalog(){
+$("catalog").innerHTML="";
+bouquets.forEach(b=>$("catalog").appendChild(makeCard(b,null)));
+}
+
+const reasons={
+EN:{
+sad:"Soft colors can bring warmth and comfort.",
+happy:"Bright flowers match your cheerful energy.",
+romantic:"A delicate arrangement expresses affection.",
+thoughtful:"Gentle colors suit quiet moments.",
+calm:"Pastel flowers create a peaceful atmosphere.",
+energetic:"Vibrant flowers match your energy."
+},
+RU:{
+sad:"Нежные оттенки добавляют тепла и уюта.",
+happy:"Яркие цветы поддерживают радостное настроение.",
+romantic:"Нежная композиция помогает выразить чувства.",
+thoughtful:"Мягкие оттенки подходят для спокойных моментов.",
+calm:"Пастельные цветы создают атмосферу спокойствия.",
+energetic:"Яркие цветы соответствуют твоей энергии."
+},
+KZ:{
+sad:"Нәзік түстер жылулық пен жайлылық сыйлайды.",
+happy:"Жарқын гүлдер көңілді көңіл-күйіңді толықтырады.",
+romantic:"Нәзік композиция сезімді білдіруге көмектеседі.",
+thoughtful:"Жұмсақ түстер тыныш сәттерге сай келеді.",
+calm:"Пастель түстері тыныш атмосфера қалыптастырады.",
+energetic:"Жарқын гүлдер сенің энергияңа сай."
+}
+};
+
+function getReason(b,mood){
+return reasons[lang][mood]+" "+b.name;
+}
+
+function chooseMood(mood,button){
+selectedMood=mood;
+document.querySelectorAll(".mood button").forEach(b=>b.classList.remove("active"));
+button.classList.add("active");
+}
+
+function detectMood(text){
+const words={
+sad:["sad","груст","печал","тоск","одинок","мұң","жыла","көңілсіз"],
+happy:["happy","весел","радост","счаст","улыба","қуаныш","бақыт","көңілді"],
+romantic:["love","роман","люб","влюб","сердц","махаббат","сүй"],
+thoughtful:["дум","задум","размыш","мысл","thinking","ойлан","ойлы"],
+calm:["calm","спокой","тихо","отдых","peace","сабыр","тыныш"],
+energetic:["энерг","актив","бодр","вдохнов","сила","қуат","серг"]
+};
+for(const mood in words){
+if(words[mood].some(w=>text.includes(w)))return mood;
+}
+return "calm";
+}
+
+function recommend(){
+const text=$("feeling").value.trim();
+if(!text&&!selectedMood){
+alert(translations[lang].noMood);
+return;
+}
+const mood=text?detectMood(text):selectedMood;
+selectedMood=mood;
+document.querySelectorAll(".mood button").forEach((b,i)=>{
+b.classList.toggle("active",moodKeys[i]===mood);
+});
+renderRecommendations(mood);
+}
+
+function renderRecommendations(mood){
+const t=translations[lang];
+const matching=bouquets.filter(b=>b.moods.includes(mood));
+const available=matching.filter(b=>b.stock>0);
+const chosen=(available.length?available:matching).slice(0,3);
+$("resultTitle").textContent=t.result;
+$("matchLabel").textContent=t.match;
+$("resultDescription").textContent=reasons[lang][mood];
+$("recommendationCards").innerHTML="";
+chosen.forEach(b=>{
+$("recommendationCards").appendChild(makeCard(b,mood));
+});
+$("results").style.display="block";
+$("results").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function sendReservation(){
+const name=$("guestName").value.trim();
+const phone=$("guestPhone").value.trim();
+const date=$("reserveDate").value;
+const time=$("reserveTime").value;
+const people=$("people").value;
+const status=$("reserveStatus");
+status.style.display="block";
+status.innerHTML="";
+if(!name||!phone||!date||!time){
+status.textContent=translations[lang].missing;
+return;
+}
+const message=
+"Qulpyr Flowers / Restaurant Ogonyok reservation request\n"+
+"Name: "+name+"\nPhone: "+phone+"\nDate: "+date+
+"\nTime: "+time+"\nGuests: "+people;
+const summary=document.createElement("pre");
+summary.style.whiteSpace="pre-wrap";
+summary.textContent=message;
+const copy=document.createElement("button");
+copy.className="primary";
+copy.textContent=lang==="RU"?"Скопировать заявку":"Copy reservation request";
+copy.onclick=()=>{
+if(navigator.clipboard&&navigator.clipboard.writeText){
+navigator.clipboard.writeText(message).then(()=>{
+copy.textContent=lang==="RU"?"Скопировано!":"Copied!";
+}).catch(()=>{summary.textContent=message;});
+}else{
+summary.textContent=message;
+};
+};
+status.append(document.createTextNode(translations[lang].request),summary,copy);
+}
+
+$("reserveDate").min=new Date().toISOString().split("T")[0];
+setLang("EN");
+</script>
+</body>
+</html>
